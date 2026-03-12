@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Criptografía & Criptoanálisis — Demo Interactivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="badge">// CYBERSECURITY DEMO — CRIPTOGRAFÍA //</div>
+  <h1>CRIPTOGRAFÍA &<br>CRIPTOANÁLISIS</h1>
+  <p class="subtitle">Angel Ortiz Valverde | Angel Ortiz Garcia | Fabián Herrera Salazar</p>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" onclick="showTab('intro')">◈ INTRO</button>
+  <button class="tab-btn" onclick="showTab('cesar')">◈ CIFRADO CÉSAR</button>
+  <button class="tab-btn" onclick="showTab('hash')">◈ HASH SHA-256</button>
+  <button class="tab-btn" onclick="showTab('brute')">◈ FUERZA BRUTA</button>
+  <button class="tab-btn" onclick="showTab('rsa')">◈ RSA SIMULADO</button>
+  <button class="tab-btn" onclick="showTab('compare')">◈ COMPARATIVA</button>
+</nav>
+
+<!-- INTRO -->
+<div class="panel active" id="panel-intro">
+  <div class="sec">¿Qué es la Criptografía?</div>
+  <div class="info">La <strong>criptografía</strong> transforma información legible en formato ininteligible para quienes no tengan la clave. El <strong>criptoanálisis</strong> estudia cómo romper esos sistemas. Juntos forman el núcleo de toda la seguridad digital moderna.</div>
+  <div class="intro-grid">
+    <div class="intro-card"><span class="icon">🔐</span><h3>Confidencialidad</h3><p>Solo el destinatario autorizado puede leer el mensaje</p></div>
+    <div class="intro-card"><span class="icon">✅</span><h3>Integridad</h3><p>Los datos no fueron alterados durante la transmisión</p></div>
+    <div class="intro-card"><span class="icon">🪪</span><h3>Autenticación</h3><p>Verifica la identidad del remitente o del sistema</p></div>
+    <div class="intro-card"><span class="icon">✍️</span><h3>No-Repudio</h3><p>El emisor no puede negar haber enviado el mensaje</p></div>
+  </div>
+  <div class="sec">Línea de Tiempo Histórica</div>
+  <div class="card">
+    <div class="tl">
+      <div class="tl-item"><div class="tl-date">~50 A.C.</div><h4>Cifrado César</h4><p>Julio César usaba sustitución monoalfabética (+3) para comunicaciones militares secretas.</p></div>
+      <div class="tl-item"><div class="tl-date">1940s</div><h4>Enigma & Alan Turing</h4><p>Los nazis cifraban con Enigma. Turing y Bletchley Park la descifraron, acortando la WWII y fundando la informática moderna.</p></div>
+      <div class="tl-item"><div class="tl-date">1976 – 1977</div><h4>RSA & Clave Pública</h4><p>Diffie-Hellman proponen el intercambio de claves; Rivest, Shamir y Adleman publican RSA, revolucionando la seguridad en internet.</p></div>
+      <div class="tl-item"><div class="tl-date">2001</div><h4>AES — Estándar Mundial</h4><p>NIST adopta el cifrado Rijndael como AES. Con 256 bits, tomaría más que la edad del universo romperlo por fuerza bruta.</p></div>
+      <div class="tl-item"><div class="tl-date">2024</div><h4>Algoritmos Post-Cuánticos</h4><p>NIST estandariza ML-KEM y ML-DSA: los primeros algoritmos resistentes a computadoras cuánticas.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- CESAR -->
+<div class="panel" id="panel-cesar">
+  <div class="sec">Cifrado César — Sustitución Monoalfabética</div>
+  <div class="info">Desplaza cada letra N posiciones. Si N=3: A→D, B→E. Solo hay 25 claves posibles → vulnerable a fuerza bruta total.</div>
+  <div class="card">
+    <div class="row">
+      <div class="col">
+        <label class="lbl">Mensaje original</label>
+        <textarea class="inp" id="cesar-input" rows="3" placeholder="Escribe tu mensaje...">Hola, este es un mensaje secreto!</textarea>
+      </div>
+      <div class="col">
+        <label class="lbl">Desplazamiento (clave): <span id="shift-val" style="color:var(--cyan)">13</span></label>
+        <input type="range" id="shift-range" min="1" max="25" value="13" oninput="updateShift(this.value)">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--dim);font-family:'Share Tech Mono'"><span>1</span><span>25</span></div>
+      </div>
+    </div>
+    <button class="btn" onclick="cifrarCesar()">⚡ CIFRAR</button>
+    <button class="btn success" onclick="descifrarCesar()">🔓 DESCIFRAR</button>
+    <button class="btn danger" onclick="atacarCesar()">💀 ATACAR (25 INTENTOS)</button>
+    <label class="lbl" style="margin-top:14px">Resultado</label>
+    <div class="out" id="cesar-output">El resultado aparecerá aquí...</div>
+    <div id="cesar-grid" class="cipher-grid" style="margin-top:14px"></div>
+    <div id="ataque-wrap" style="display:none;margin-top:14px">
+      <label class="lbl">⚠ Criptoanálisis — 25 textos posibles</label>
+      <div class="console" id="ataque-output"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sec">Análisis de Frecuencia</div>
+    <div class="info">En español, 'e', 'a', 'o' son las letras más frecuentes. Un criptoanalista puede deducir el desplazamiento sin conocer la clave analizando qué símbolo aparece más en el texto cifrado.</div>
+    <button class="btn" onclick="analizarFrecuencia()">📊 ANALIZAR FRECUENCIA</button>
+    <div class="out" id="freq-output" style="display:none;margin-top:10px;background:var(--bg3);border-color:rgba(0,245,255,.2);color:var(--text)"></div>
+  </div>
+</div>
+
+<!-- HASH -->
+<div class="panel" id="panel-hash">
+  <div class="sec">SHA-256 — Huella Digital de Datos</div>
+  <div class="info"><strong>Unidireccional</strong> (no reversible) · <strong>Determinista</strong> (misma entrada = mismo hash) · <strong>Efecto avalancha</strong> (1 carácter diferente → hash completamente diferente)</div>
+  <div class="card">
+    <label class="lbl">Escribe cualquier texto (el hash cambia en tiempo real)</label>
+    <input class="inp" type="text" id="hash-input" placeholder="Escribe algo..." oninput="calcularHash()" value="Hola Mundo">
+    <label class="lbl" style="margin-top:14px">SHA-256 (simulado, 64 caracteres hex)</label>
+    <div class="out" id="hash-output"></div>
+    <label class="lbl" style="margin-top:10px">Caracteres cambiados vs. hash anterior</label>
+    <div class="out" id="hash-diff"></div>
+    <div style="margin-top:12px">
+      <span class="stat c">Entrada: <span id="input-len">0</span> chars</span>
+      <span class="stat g">Hash siempre: 64 chars (256 bits)</span>
+      <span class="stat y">Posibles hashes: 2^256 ≈ 10^77</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sec">Verificación de Integridad</div>
+    <div class="row">
+      <div class="col">
+        <label class="lbl">Mensaje original</label>
+        <input class="inp" type="text" id="integ-orig" value="Transferencia: $500 a cuenta 12345">
+      </div>
+      <div class="col">
+        <label class="lbl">Mensaje recibido (modifica para simular ataque)</label>
+        <input class="inp" type="text" id="integ-recv" value="Transferencia: $500 a cuenta 12345">
+      </div>
+    </div>
+    <button class="btn" onclick="verificarIntegridad()">🛡 VERIFICAR INTEGRIDAD</button>
+    <div class="out" id="integ-output" style="margin-top:10px">Resultado de verificación...</div>
+  </div>
+</div>
+
+<!-- FUERZA BRUTA -->
+<div class="panel" id="panel-brute">
+  <div class="sec">Criptoanálisis — Ataque de Fuerza Bruta</div>
+  <div class="info">Prueba todas las combinaciones posibles. La <strong>longitud y complejidad</strong> de la clave determina si es factible. Esta demo visualiza el proceso en tiempo real.</div>
+  <div class="card">
+    <div class="row">
+      <div class="col">
+        <label class="lbl">Contraseña objetivo (máx. 4 chars para la demo)</label>
+        <input class="inp" type="text" id="target-pass" maxlength="4" value="ab3c">
+      </div>
+      <div class="col">
+        <label class="lbl">Conjunto de caracteres</label>
+        <select class="inp" id="charset-select" style="cursor:pointer">
+          <option value="abc">Solo letras (a-z)</option>
+          <option value="num">Solo números (0-9)</option>
+          <option value="alphanum" selected>Alfanumérico (a-z + 0-9)</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn danger" id="brute-btn" onclick="iniciarFuerzaBruta()">💀 INICIAR ATAQUE</button>
+    <button class="btn" onclick="detenerAtaque()">⛔ DETENER</button>
+    <div style="margin-top:14px">
+      <label class="lbl">Progreso</label>
+      <div class="prog-wrap"><div class="prog-bar" id="brute-progress"></div></div>
+    </div>
+    <div class="console" id="brute-console" style="margin-top:10px"><div class="ln" style="color:var(--dim)">// Esperando inicio del ataque...</div></div>
+    <div style="margin-top:10px">
+      <span class="stat c">Intentos: <span id="attempts-count">0</span></span>
+      <span class="stat y">Velocidad: <span id="attempts-speed">0</span>/s</span>
+      <span class="stat r">Tiempo: <span id="attempts-time">0.0s</span></span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sec">¿Cuánto tardaría un ataque real?</div>
+    <table class="cmp-table">
+      <tr><th>CONTRASEÑA</th><th>COMBINACIONES</th><th>TIEMPO (10B/s)</th><th>SEGURIDAD</th></tr>
+      <tr><td class="bad" style="font-family:'Share Tech Mono'">1234</td><td>10,000</td><td class="bad">Instantáneo</td><td class="bad">❌ INSEGURA</td></tr>
+      <tr><td style="font-family:'Share Tech Mono'">password</td><td>2×10¹¹</td><td class="bad">0.02 segundos</td><td class="bad">❌ INSEGURA</td></tr>
+      <tr><td style="font-family:'Share Tech Mono'">P@ssw0rd!</td><td>7.2×10¹⁵</td><td class="mid">8.3 días</td><td class="mid">⚠ DÉBIL</td></tr>
+      <tr><td style="font-family:'Share Tech Mono'">mX#9kL!p2qR</td><td>5.3×10²⁰</td><td class="good">1.7 millones años</td><td class="good">✅ SEGURA</td></tr>
+      <tr><td style="font-family:'Share Tech Mono'">[AES-256]</td><td>1.16×10⁷⁷</td><td class="good">Más que la edad del universo</td><td class="good">🔐 INVIOLABLE</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- RSA -->
+<div class="panel" id="panel-rsa">
+  <div class="sec">RSA — Criptografía Asimétrica Simulada</div>
+  <div class="info">RSA usa <strong>dos claves matemáticamente relacionadas</strong>: <strong>Clave Pública</strong> (cifra) y <strong>Clave Privada</strong> (descifra). Es matemáticamente imposible derivar la privada de la pública en tiempo razonable.</div>
+  <div class="card">
+    <div class="sec">Generador de Par de Claves RSA (Simplificado)</div>
+    <button class="btn" onclick="generarClaves()">🔑 GENERAR PAR DE CLAVES</button>
+    <div class="row" style="margin-top:14px">
+      <div class="col">
+        <label class="lbl">🌐 Clave Pública (e, n) — Compártela</label>
+        <div class="key-box" id="public-key">Sin generar...</div>
+      </div>
+      <div class="col">
+        <label class="lbl">🔒 Clave Privada (d, n) — NUNCA la compartas</label>
+        <div class="key-box" id="private-key" style="border-color:rgba(255,51,102,.3);color:var(--red)">Sin generar...</div>
+      </div>
+    </div>
+    <label class="lbl" style="margin-top:12px">Mensaje a cifrar (número entero pequeño para la demo)</label>
+    <input class="inp" type="number" id="rsa-msg" value="42" min="1" max="100">
+    <p style="font-size:11px;color:var(--dim);margin-top:6px;font-family:'Share Tech Mono'">// RSA real usa bloques de bytes; aquí simplificamos con un número para visualizar la matemática</p>
+    <div style="margin-top:10px">
+      <button class="btn" onclick="cifrarRSA()">🔐 CIFRAR CON CLAVE PÚBLICA</button>
+      <button class="btn success" onclick="descifrarRSA()">🔓 DESCIFRAR CON CLAVE PRIVADA</button>
+    </div>
+    <label class="lbl" style="margin-top:14px">Proceso matemático</label>
+    <div class="out" id="rsa-output" style="line-height:2">Genera las claves y cifra un mensaje para ver el proceso...</div>
+  </div>
+  <div class="card">
+    <div class="sec">Firma Digital (Conceptual)</div>
+    <div class="info">En firmas digitales el proceso se <strong>invierte</strong>: el emisor <strong>firma con su clave privada</strong>, y cualquier receptor puede <strong>verificar con la clave pública</strong>.</div>
+    <div class="row">
+      <div class="col">
+        <label class="lbl">Documento a firmar</label>
+        <input class="inp" type="text" id="sign-doc" value="Contrato: acepto los términos el 11/03/2026">
+      </div>
+    </div>
+    <button class="btn" onclick="firmarDocumento()">✍️ FIRMAR DOCUMENTO</button>
+    <button class="btn success" onclick="verificarFirma()">✅ VERIFICAR FIRMA</button>
+    <div class="out" id="sign-output" style="margin-top:10px">Genera claves primero, luego firma un documento...</div>
+  </div>
+</div>
+
+<!-- COMPARATIVA -->
+<div class="panel" id="panel-compare">
+  <div class="sec">Comparativa de Algoritmos Modernos</div>
+  <div class="freq-chart-wrap">
+    <table class="cmp-table">
+      <tr><th>ALGORITMO</th><th>TIPO</th><th>CLAVE</th><th>VELOCIDAD</th><th>USO PRINCIPAL</th><th>SEGURIDAD</th></tr>
+      <tr><td class="good" style="font-weight:bold">AES-256</td><td>Simétrico</td><td>256 bits</td><td class="good">★★★★★ Muy Alta</td><td>TLS, disco, VPN</td><td class="good">✅ Muy Alta</td></tr>
+      <tr><td style="font-weight:bold">RSA-2048</td><td>Asimétrico</td><td>2048 bits</td><td class="mid">★★☆☆☆ Baja</td><td>Intercambio de claves</td><td class="mid">✅ Alta (hasta ~2030)</td></tr>
+      <tr><td class="good" style="font-weight:bold">ECC-256</td><td>Asimétrico</td><td>256 bits</td><td class="good">★★★★☆ Alta</td><td>TLS 1.3, móviles, IoT</td><td class="good">✅ Muy Alta</td></tr>
+      <tr><td class="good" style="font-weight:bold">SHA-256</td><td>Hash</td><td>256 bits output</td><td class="good">★★★★★ Muy Alta</td><td>Integridad, Bitcoin</td><td class="good">✅ Muy Alta</td></tr>
+      <tr><td class="good" style="font-weight:bold">SHA-3</td><td>Hash</td><td>256/512 bits</td><td class="good">★★★★☆ Alta</td><td>Alternativa post-SHA2</td><td class="good">✅ Muy Alta</td></tr>
+      <tr><td class="bad" style="font-weight:bold">DES-56</td><td>Simétrico</td><td>56 bits</td><td class="mid">★★★☆☆ Media</td><td>OBSOLETO</td><td class="bad">❌ ROTA (1998)</td></tr>
+      <tr><td class="bad" style="font-weight:bold">MD5</td><td>Hash</td><td>128 bits</td><td class="good">★★★★★ Muy Alta</td><td>Checksums (NO seguridad)</td><td class="bad">❌ Colisiones conocidas</td></tr>
+      <tr><td class="good" style="font-weight:bold">ML-KEM</td><td>Post-Cuántico</td><td>Variable</td><td class="mid">★★★☆☆ Media</td><td>Era post-cuántica</td><td class="good">✅ Resistente a Shor</td></tr>
+    </table>
+  </div>
+  <div class="card" style="margin-top:20px">
+    <div class="sec">¿Cuándo usar cada uno?</div>
+    <div class="info"><strong>Cifrado de datos en reposo o en tránsito masivo</strong> → AES-256 (velocidad + seguridad)<br><strong>Intercambio seguro de claves</strong> → ECDHE (ECC) sobre TLS 1.3<br><strong>Firmas digitales</strong> → ECDSA o RSA-4096<br><strong>Verificación de integridad / contraseñas</strong> → SHA-256 o SHA-3 (con bcrypt/Argon2 para passwords)<br><strong>Sistemas con horizonte &gt; 2030</strong> → Migrar a ML-KEM / ML-DSA (NIST 2024)</div>
+  </div>
+</div>
+
+<footer>CRIPTOGRAFÍA & CRIPTOANÁLISIS · DEMO INTERACTIVO · 2026</footer>
+
+<script>
+// ── TAB NAVIGATION ─────────────────────────────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── HASH (simulated with deterministic pseudo-SHA) ─────────────────────────────
+let lastHash = '';
+function pseudoSHA256(str) {
+  // Deterministic, visually convincing 64-char hex string derived from input
+  let h = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i);
+    h = h.map((v, j) => ((v ^ (c * (j + 1) * 2654435761)) >>> 0));
+    h[i % 8] = (h[i % 8] ^ (h[(i + 1) % 8] << 5) ^ (h[(i + 2) % 8] >>> 3)) >>> 0;
+  }
+  // Mix passes for avalanche
+  for (let r = 0; r < 4; r++) {
+    for (let j = 0; j < 8; j++) {
+      h[j] = (h[j] + h[(j+1)%8] * 0x9e3779b9 + (h[j] << 6) + (h[j] >>> 2)) >>> 0;
+    }
+  }
+  return h.map(v => v.toString(16).padStart(8,'0')).join('');
+}
+
+function calcularHash() {
+  const inp = document.getElementById('hash-input').value;
+  document.getElementById('input-len').textContent = inp.length;
+  const hash = pseudoSHA256(inp);
+  const outEl = document.getElementById('hash-output');
+  if (lastHash) {
+    let html = '';
+    for (let i = 0; i < hash.length; i++) {
+      const changed = i < lastHash.length && hash[i] !== lastHash[i];
+      html += `<span class="hash-char ${changed ? 'changed' : ''}">${hash[i]}</span>`;
+    }
+    outEl.innerHTML = html;
+    const diff = [...hash].filter((c, i) => c !== (lastHash[i] || '')).length;
+    document.getElementById('hash-diff').textContent = `${diff} de 64 caracteres cambiaron (${Math.round(diff/64*100)}%) → Efecto avalancha`;
+    document.getElementById('hash-diff').className = 'out ' + (diff > 10 ? 'red' : 'yellow');
+  } else {
+    outEl.textContent = hash;
+  }
+  lastHash = hash;
+}
+calcularHash();
+
+function verificarIntegridad() {
+  const orig = document.getElementById('integ-orig').value;
+  const recv = document.getElementById('integ-recv').value;
+  const h1 = pseudoSHA256(orig), h2 = pseudoSHA256(recv);
+  const ok = h1 === h2;
+  const el = document.getElementById('integ-output');
+  el.className = 'out ' + (ok ? '' : 'red');
+  el.innerHTML = ok
+    ? `✅ INTEGRIDAD VERIFICADA\nHash original: ${h1}\nHash recibido: ${h2}\nSon idénticos — el mensaje NO fue alterado.`
+    : `❌ INTEGRIDAD COMPROMETIDA — POSIBLE ATAQUE\nHash original: ${h1}\nHash recibido: ${h2}\nLos hashes DIFIEREN — el mensaje fue MODIFICADO.`;
+}
+
+// ── CAESAR ─────────────────────────────────────────────────────────────────────
+function updateShift(v) { document.getElementById('shift-val').textContent = v; }
+
+function cesarTransform(text, shift) {
+  return text.split('').map(c => {
+    if (/[a-z]/.test(c)) return String.fromCharCode(((c.charCodeAt(0)-97+shift)%26+26)%26+97);
+    if (/[A-Z]/.test(c)) return String.fromCharCode(((c.charCodeAt(0)-65+shift)%26+26)%26+65);
+    return c;
+  }).join('');
+}
+
+function cifrarCesar() {
+  const txt = document.getElementById('cesar-input').value;
+  const shift = parseInt(document.getElementById('shift-range').value);
+  const enc = cesarTransform(txt, shift);
+  document.getElementById('cesar-output').textContent = enc;
+  drawCesarGrid(txt, enc);
+}
+function descifrarCesar() {
+  const txt = document.getElementById('cesar-input').value;
+  const shift = parseInt(document.getElementById('shift-range').value);
+  const dec = cesarTransform(txt, -shift);
+  document.getElementById('cesar-output').textContent = dec;
+}
+function drawCesarGrid(orig, enc) {
+  const g = document.getElementById('cesar-grid');
+  const max = Math.min(orig.length, 30);
+  g.innerHTML = '';
+  for (let i = 0; i < max; i++) {
+    const a = document.createElement('div'); a.className='c-cell orig'; a.textContent=orig[i]; g.appendChild(a);
+  }
+  g.innerHTML += '<br>';
+  for (let i = 0; i < max; i++) {
+    const a = document.createElement('div'); a.className='c-cell enc'; a.textContent=enc[i]; g.appendChild(a);
+  }
+}
+function atacarCesar() {
+  const txt = document.getElementById('cesar-input').value;
+  const wrap = document.getElementById('ataque-wrap');
+  const cons = document.getElementById('ataque-output');
+  wrap.style.display = 'block';
+  cons.innerHTML = '';
+  for (let s = 1; s <= 25; s++) {
+    const dec = cesarTransform(txt, -s);
+    const line = document.createElement('div');
+    line.className = 'ln attempt';
+    line.textContent = `Shift=${String(s).padStart(2,'0')}: ${dec}`;
+    cons.appendChild(line);
+  }
+  const found = document.createElement('div');
+  found.className = 'ln found';
+  found.textContent = '// Ataque completo: revisar qué texto tiene sentido para encontrar la clave.';
+  cons.appendChild(found);
+  cons.scrollTop = cons.scrollHeight;
+}
+// ── FREQUENCY ANALYSIS — BAR CHART A→Z ────────────────────────────────────────
+function analizarFrecuencia() {
+  const txt = document.getElementById('cesar-input').value.toLowerCase().replace(/[^a-z]/g, '');
+  const freq = {};
+  for (const c of txt) freq[c] = (freq[c] || 0) + 1;
+
+  // Sort alphabetically A → Z
+  const sorted = Object.entries(freq).sort((a, b) => a[0].localeCompare(b[0]));
+
+  const out = document.getElementById('freq-output');
+  out.style.display = 'block';
+
+  if (!sorted.length) {
+    out.innerHTML = '<span style="color:var(--dim);font-family:\'Share Tech Mono\',monospace;font-size:11px">// Sin letras para analizar.</span>';
+    return;
+  }
+
+  const maxVal = Math.max(...sorted.map(([, n]) => n));
+  const CHART_H = 130; // px height of bars area
+
+  // Spanish reference frequencies (% of total)
+  const esFreq = {a:12.5,b:1.4,c:4.0,d:5.0,e:13.7,f:0.7,g:1.0,h:1.2,i:6.2,j:0.4,k:0.0,l:4.9,m:3.2,n:6.7,o:9.1,p:2.5,q:0.9,r:6.9,s:7.9,t:4.6,u:3.9,v:0.9,w:0.0,x:0.2,y:0.9,z:0.5};
+
+  // Determine rank by frequency for coloring
+  const byFreq = [...sorted].sort((a, b) => b[1] - a[1]);
+  const rankMap = {};
+  byFreq.forEach(([l], i) => rankMap[l] = i);
+
+  // Grid lines (25%, 50%, 75%, 100%)
+ 
+
+  // Build bars
+  let barsHtml = '';
+  sorted.forEach(([letter, count]) => {
+    const pct = count / maxVal;
+    const barHeight = Math.max(4, Math.round(pct * CHART_H));
+    const freqPct = (count / txt.length * 100).toFixed(1);
+    const rank = rankMap[letter];
+    const esPct = esFreq[letter] || 0;
+
+    // Color: top-3 = cyan, high in Spanish = green, rest = dim teal
+    let barColor, glowColor, textColor;
+    if (rank === 0) {
+      barColor = 'var(--greenDark)'; glowColor = 'rgba(0,245,255,0.6)'; textColor = 'var(--greenDark)';
+    } else if (rank <= 2) {
+      barColor = 'rgba(0,245,255,0.7)'; glowColor = 'rgba(0,245,255,0.3)'; textColor = 'var(--cyan)';
+    } else if (esPct >= 6) {
+      barColor = 'var(--green)'; glowColor = 'rgba(0,255,136,0.3)'; textColor = 'var(--green)';
+    } else {
+      barColor = 'rgba(0,245,255,0.3)'; glowColor = 'transparent'; textColor = 'rgba(0,245,255,0.5)';
+    }
+
+    barsHtml += `
+      <div class="freq-bar-col" title="${letter.toUpperCase()}: ${count} apariciones (${freqPct}% del texto)">
+        <div class="freq-bar-pct" style="color:${textColor}">${freqPct}%</div>
+        <div class="freq-bar" style="height:${barHeight}px;background-color:${barColor}" max-height:100px;></div>
+        <div class="freq-bar-letter" style="color:${textColor}">${letter.toUpperCase()}</div>
+        <div class="freq-bar-count">${count}</div>
+      </div>`;
+  });
+
+  out.innerHTML = `
+    <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:2px;margin-bottom:14px;text-transform:uppercase">
+      // ANÁLISIS DE FRECUENCIA — ORDENADO A → Z &nbsp;|&nbsp; Total letras: ${txt.length}
+    </div>
+    <div class="freq-chart-wrap">
+      <div class="freq-chart" style="height:${CHART_H + 50}px">
+        ${barsHtml}
+      </div>
+    </div>
+    <div class="freq-legend">
+      <span style="color:var(--cyan)">■ Letra más frecuente</span>
+      <span style="color:rgba(0,245,255,0.7)">■ Top 3</span>
+      <span style="color:var(--green)">■ Común en español (&gt;6%)</span>
+      <span style="color:rgba(0,245,255,0.35)">■ Resto</span>
+    </div>
+    <div class="freq-note">
+      // En español: "E" ≈ 13.7%, "A" ≈ 12.5%, "O" ≈ 9.1%, "S" ≈ 7.9%<br>
+      // Si la letra más frecuente NO es "E", el desplazamiento = pos("letra_top") − pos("E")
+    </div>`;
+}
+
+// ── BRUTE FORCE ────────────────────────────────────────────────────────────────
+let bruteWorker = null, bruteRunning = false;
+const CHARSETS = { abc:'abcdefghijklmnopqrstuvwxyz', num:'0123456789', alphanum:'abcdefghijklmnopqrstuvwxyz0123456789' };
+
+function iniciarFuerzaBruta() {
+  if (bruteRunning) return;
+  const target = document.getElementById('target-pass').value.toLowerCase();
+  const charset = CHARSETS[document.getElementById('charset-select').value];
+  const cons = document.getElementById('brute-console');
+  cons.innerHTML = '<div class="ln">// Iniciando ataque de fuerza bruta...</div>';
+  document.getElementById('attempts-count').textContent='0';
+  document.getElementById('attempts-speed').textContent='0';
+  document.getElementById('attempts-time').textContent='0.0s';
+  document.getElementById('brute-progress').style.width='0%';
+
+  bruteRunning = true;
+  let attempts = 0, found = false;
+  const startTime = Date.now();
+  const maxLen = target.length;
+  const total = Math.pow(charset.length, maxLen);
+  let idx = 0;
+
+  function step() {
+    if (!bruteRunning) return;
+    const batchSize = 500;
+    for (let b = 0; b < batchSize && idx < total; b++, idx++) {
+      let n = idx, candidate = '';
+      for (let i = 0; i < maxLen; i++) { candidate = charset[n % charset.length] + candidate; n = Math.floor(n / charset.length); }
+      attempts++;
+      if (candidate === target) {
+        found = true;
+        const elapsed = ((Date.now()-startTime)/1000).toFixed(2);
+        const line = document.createElement('div'); line.className='ln found';
+        line.textContent = `✅ ¡CONTRASEÑA ENCONTRADA! → "${candidate}" en ${attempts.toLocaleString()} intentos (${elapsed}s)`;
+        cons.appendChild(line); cons.scrollTop = cons.scrollHeight;
+        document.getElementById('brute-progress').style.width='100%';
+        bruteRunning = false; return;
+      }
+      if (attempts % 200 === 0) {
+        const line = document.createElement('div'); line.className='ln attempt';
+        line.textContent = `Probando: "${candidate}" (#${attempts.toLocaleString()})`;
+        cons.appendChild(line);
+        if (cons.children.length > 60) cons.removeChild(cons.children[1]);
+        cons.scrollTop = cons.scrollHeight;
+      }
+    }
+    const elapsed = (Date.now()-startTime)/1000;
+    document.getElementById('attempts-count').textContent = attempts.toLocaleString();
+    document.getElementById('attempts-speed').textContent = Math.round(attempts/elapsed).toLocaleString();
+    document.getElementById('attempts-time').textContent = elapsed.toFixed(1)+'s';
+    document.getElementById('brute-progress').style.width = Math.min(idx/total*100,99)+'%';
+    if (!found && idx < total) requestAnimationFrame(step);
+    else if (!found) {
+      const l=document.createElement('div'); l.className='ln found';
+      l.textContent='// Búsqueda completa. Contraseña no encontrada en el espacio de búsqueda.';
+      cons.appendChild(l); cons.scrollTop=cons.scrollHeight; bruteRunning=false;
+    }
+  }
+  requestAnimationFrame(step);
+}
+function detenerAtaque() {
+  bruteRunning = false;
+  const cons=document.getElementById('brute-console');
+  const l=document.createElement('div'); l.className='ln'; l.textContent='// Ataque detenido por el usuario.';
+  cons.appendChild(l); cons.scrollTop=cons.scrollHeight;
+}
+
+// ── RSA SIMULATION ─────────────────────────────────────────────────────────────
+let rsaKeys = null;
+function gcd(a,b){return b===0?a:gcd(b,a%b)}
+function modPow(base,exp,mod){let result=1n;base=base%mod;while(exp>0n){if(exp%2n===1n)result=result*base%mod;exp=exp/2n;base=base*base%mod}return result}
+function modInverse(a,m){let [old_r,r]=[a,m],[old_s,s]=[1n,0n];while(r!==0n){const q=old_r/r;[old_r,r]=[r,old_r-q*r];[old_s,s]=[s,old_s-q*s]}return((old_s%m)+m)%m}
+
+const SMALL_PRIMES=[17n,19n,23n,29n,31n,37n,41n,43n,47n,53n,59n,61n,67n,71n,73n,79n,83n,89n,97n,101n,103n,107n,109n,113n];
+
+function generarClaves() {
+  const idx1 = Math.floor(Math.random()*SMALL_PRIMES.length);
+  let idx2 = Math.floor(Math.random()*SMALL_PRIMES.length);
+  while(idx2===idx1) idx2=(idx2+1)%SMALL_PRIMES.length;
+  const p=SMALL_PRIMES[idx1], q=SMALL_PRIMES[idx2];
+  const n=p*q, phi=(p-1n)*(q-1n);
+  let e=3n;
+  while(gcd(Number(e),Number(phi))!==1) e+=2n;
+  const d=modInverse(e,phi);
+  rsaKeys={p,q,n,phi,e,d};
+  document.getElementById('public-key').textContent=
+    `e = ${e}\nn = ${n}\n(p=${p}, q=${q})\n\nCifrar: C = M^e mod n = M^${e} mod ${n}`;
+  document.getElementById('private-key').textContent=
+    `d = ${d}\nn = ${n}\nφ(n) = ${phi}\n\nDescifrar: M = C^d mod n = C^${d} mod ${n}`;
+}
+
+let rsaCipher = null;
+function cifrarRSA() {
+  if(!rsaKeys){document.getElementById('rsa-output').textContent='⚠ Primero genera las claves.';return}
+  const M=BigInt(document.getElementById('rsa-msg').value);
+  if(M>=rsaKeys.n){document.getElementById('rsa-output').textContent=`⚠ El mensaje (${M}) debe ser menor que n (${rsaKeys.n}).`;return}
+  rsaCipher=modPow(M,rsaKeys.e,rsaKeys.n);
+  document.getElementById('rsa-output').textContent=
+    `📨 Mensaje original (M): ${M}\n\n🔐 Cifrado con clave pública:\nC = M^e mod n\nC = ${M}^${rsaKeys.e} mod ${rsaKeys.n}\nC = ${rsaCipher}\n\n// El texto cifrado ${rsaCipher} es inútil sin la clave privada d=${rsaKeys.d}`;
+}
+function descifrarRSA() {
+  if(!rsaKeys||rsaCipher===null){document.getElementById('rsa-output').textContent='⚠ Genera claves y cifra un mensaje primero.';return}
+  const M=modPow(rsaCipher,rsaKeys.d,rsaKeys.n);
+  document.getElementById('rsa-output').textContent=
+    `🔓 Descifrado con clave privada:\nM = C^d mod n\nM = ${rsaCipher}^${rsaKeys.d} mod ${rsaKeys.n}\nM = ${M}\n\n✅ Mensaje recuperado: ${M}\n// ¡Coincide con el original! La matemática RSA funciona.`;
+}
+
+let docHash='', signedHash='';
+function firmarDocumento() {
+  if(!rsaKeys){document.getElementById('sign-output').textContent='⚠ Genera claves primero.';return}
+  const doc=document.getElementById('sign-doc').value;
+  docHash=pseudoSHA256(doc);
+  const hashNum=BigInt('0x'+docHash.substring(0,8))%rsaKeys.n;
+  signedHash=modPow(hashNum,rsaKeys.d,rsaKeys.n).toString();
+  document.getElementById('sign-output').textContent=
+    `✍️ DOCUMENTO FIRMADO\n\nDocumento: "${doc}"\nHash SHA-256: ${docHash}\nHash (num): ${hashNum}\n\nFirma digital = Hash^d mod n\nFirma = ${signedHash}\n\n// La firma se adjunta al documento y puede verificarse con la clave pública.`;
+}
+function verificarFirma() {
+  if(!signedHash){document.getElementById('sign-output').textContent='⚠ Firma el documento primero.';return}
+  const doc=document.getElementById('sign-doc').value;
+  const currentHash=pseudoSHA256(doc);
+  const hashNum=BigInt('0x'+currentHash.substring(0,8))%rsaKeys.n;
+  const recoveredHash=modPow(BigInt(signedHash),rsaKeys.e,rsaKeys.n).toString();
+  const valid=hashNum.toString()===recoveredHash;
+  const el=document.getElementById('sign-output');
+  el.className='out '+(valid?'':'red');
+  el.textContent=valid
+    ?`✅ FIRMA VÁLIDA — DOCUMENTO AUTÉNTICO\n\nHash del documento actual: ${hashNum}\nHash recuperado de la firma: ${recoveredHash}\n\nSon idénticos → El documento NO fue alterado y proviene del firmante legítimo.`
+    :`❌ FIRMA INVÁLIDA — DOCUMENTO ALTERADO\n\nHash del documento: ${hashNum}\nHash en la firma: ${recoveredHash}\n\nNo coinciden → El documento fue MODIFICADO después de firmarse.`;
+}
+
+// Init
+calcularHash();
+</script>
+</body>
+</html>
