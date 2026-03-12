@@ -313,7 +313,7 @@ function descifrarCesar() {
 }
 function drawCesarGrid(orig, enc) {
   const g = document.getElementById('cesar-grid');
-  const max = Math.min(orig.length, 30);
+  const max = orig.length;
   g.innerHTML = '';
   for (let i = 0; i < max; i++) {
     const a = document.createElement('div'); a.className='c-cell orig'; a.textContent=orig[i]; g.appendChild(a);
